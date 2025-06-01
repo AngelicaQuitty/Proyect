@@ -7,24 +7,22 @@ import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.HashMap;
 
-
 class SistemaGestionAlimentos extends JFrame {
     private ArrayList<Donador> donadores = new ArrayList<>();
     private JTextField txtNombreDonador, txtContactoDonador;
-    private JTextField txtNombreAlimento, txtCantidadAlimento, txtFechaExpiracion;
+    private JTextField txtNombreAlimento, txtCantidadAlimento;
     private JTextArea areaDatos;
     private JComboBox<Donador> comboDonadores;
     private final DateTimeFormatter formatoFecha = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     public SistemaGestionAlimentos() {
-
         setTitle("Sistema de Gestión de Alimentos Donados");
         setSize(800, 800);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
         JPanel panelPrincipal = new JPanel(new BorderLayout(10, 10));
-        panelPrincipal.setBackground(new Color(233, 243, 227, 255));
+        panelPrincipal.setBackground(new Color(233, 243, 227));
 
         JLabel titulo = new JLabel(" FoodShare", SwingConstants.CENTER);
         titulo.setFont(new Font("Segoe UI", Font.BOLD, 22));
@@ -40,7 +38,7 @@ class SistemaGestionAlimentos extends JFrame {
         // Panel para registrar donadores
         JPanel panelDonador = new JPanel(new GridLayout(3, 1, 5, 5));
         panelDonador.setBorder(BorderFactory.createTitledBorder("Registrar Donador"));
-        panelDonador.setBackground(new Color(208, 239, 223, 255));
+        panelDonador.setBackground(new Color(208, 239, 223));
         txtNombreDonador = new JTextField();
         txtNombreDonador.setBorder(BorderFactory.createTitledBorder("Nombre"));
         txtNombreDonador.setFont(new Font("Segoe UI", Font.PLAIN, 13));
@@ -82,7 +80,7 @@ class SistemaGestionAlimentos extends JFrame {
         JComboBox<Integer> comboMes = new JComboBox<>();
         JComboBox<Integer> comboDia = new JComboBox<>();
 
-        for (int i = 2000; i <= 2030; i++) comboAnio.addItem(i);
+        for (int i = 2020; i <= 2030; i++) comboAnio.addItem(i);
         for (int i = 1; i <= 12; i++) comboMes.addItem(i);
         for (int i = 1; i <= 31; i++) comboDia.addItem(i);
 
@@ -136,6 +134,7 @@ class SistemaGestionAlimentos extends JFrame {
                 JOptionPane.showMessageDialog(this, "Completa todos los campos del donador.");
             }
         });
+        //-------------
 
         btnGuardarAlimento.addActionListener(e -> {
             Donador donadorSeleccionado = (Donador) comboDonadores.getSelectedItem();
@@ -146,7 +145,7 @@ class SistemaGestionAlimentos extends JFrame {
             int dia = (int) comboDia.getSelectedItem();
             LocalDate fechaExp = LocalDate.of(anio, mes, dia);
 
-            if (donadorSeleccionado != null && !nombre.isEmpty() && !cantidad.isEmpty() ) {
+            if (donadorSeleccionado != null && !nombre.isEmpty() && !cantidad.isEmpty()) {
                 String descripcion = nombre + " - " + cantidad + " unidades";
 
                 String[] opciones = {
@@ -171,76 +170,10 @@ class SistemaGestionAlimentos extends JFrame {
                             "🥫 El alimento fue donado a la fundación: " + fundacionSeleccionada
                     );
 
-                    mostrarDatos(); {
-                        areaDatos.setText("");
-                        ArrayList<String> caducados = new ArrayList<>();
-                        ArrayList<String> proximos = new ArrayList<>();
-                        LocalDate hoy = LocalDate.now();
-
-                        areaDatos.append("📋 REGISTRO DE DONACIONES\n");
-                        areaDatos.append("----------------------------------------------------------------\n");
-
-                        for (Donador d : donadores) {
-                            areaDatos.append("\n👤 Donador: " + d + "\n");
-                            if (d.getAlimentos().isEmpty()) {
-                                areaDatos.append("   🔸 (No ha donado alimentos aún)\n");
-                            } else {
-                                for (Alimento a : d.getAlimentos()) {
-                                    long diasRestantes = ChronoUnit.DAYS.between(hoy, a.getFechaExpiracion());
-                                    String fecha = a.getFechaExpiracion().format(formatoFecha);
-                                    areaDatos.append("   🥫 " + a.getDescripcion() + "\n");
-                                    areaDatos.append("      📅 Vence: " + fecha + "\n");
-                                    areaDatos.append("      🏥 Fundación: " + a.getFundacion() + "\n");
-
-                                    if (diasRestantes < 0) {
-                                        caducados.add("❌ " + d + ": " + a.getDescripcion() + " (expiró hace " + Math.abs(diasRestantes) + " días)");
-                                    } else {
-                                        proximos.add("✅ " + d + ": " + a.getDescripcion() + " (faltan " + diasRestantes + " días)");
-                                    }
-                                }
-                            }
-                        }
-
-                        areaDatos.append("\n-----------------------------------------------------------------\n");
-                        areaDatos.append("⏳ ESTADO DE VENCIMIENTO DE ALIMENTOS\n");
-
-                        areaDatos.append("\n⚠ Alimentos CADUCADOS:\n");
-                        if (caducados.isEmpty()) {
-                            areaDatos.append("   ✅ Ninguno\n");
-                        } else {
-                            for (String c : caducados) areaDatos.append("   " + c + "\n");
-                        }
-
-                        areaDatos.append("\n📆 Alimentos AÚN VÁLIDOS:\n");
-                        if (proximos.isEmpty()) {
-                            areaDatos.append("   ❌ Ninguno\n");
-                        } else {
-                            for (String p : proximos) areaDatos.append("   " + p + "\n");
-                        }
-
-                        areaDatos.append("\n----------------------------------------------------------------\n");
-                        areaDatos.append("🏥 ALIMENTOS POR FUNDACIÓN\n");
-
-                        Map<String, ArrayList<String>> alimentosPorFundacion = new HashMap<>();
-
-                        for (Donador d : donadores) {
-                            for (Alimento a : d.getAlimentos()) {
-                                alimentosPorFundacion
-                                        .computeIfAbsent(a.getFundacion(), k -> new ArrayList<>())
-                                        .add("👤 " + d + " → 🥫 " + a.getDescripcion() + " (vence: " + a.getFechaExpiracion().format(formatoFecha) + ")");
-                            }
-                        }
-
-                        for (String fundacion : alimentosPorFundacion.keySet()) {
-                            areaDatos.append("\n🏥 Fundación: " + fundacion + "\n");
-                            for (String detalle : alimentosPorFundacion.get(fundacion)) {
-                                areaDatos.append("   " + detalle + "\n");
-                            }
-                        }
-
-                        areaDatos.append("\n----------------------------------------------------------------\n");
-                    }
+                    mostrarDatos();
                 }
+                txtNombreAlimento.setText("");
+                txtCantidadAlimento.setText("");
 
             } else {
                 JOptionPane.showMessageDialog(null, "Completa todos los campos del alimento y selecciona un donador.");
@@ -256,40 +189,49 @@ class SistemaGestionAlimentos extends JFrame {
         ArrayList<String> proximos = new ArrayList<>();
         LocalDate hoy = LocalDate.now();
 
+        areaDatos.append("📋 REGISTRO DE DONACIONES\n");
+        areaDatos.append("----------------------------------------------------------------\n");
+
         for (Donador d : donadores) {
-            areaDatos.append(d + ":\n");
+            areaDatos.append("\n👤 Donador: " + d + "\n");
             if (d.getAlimentos().isEmpty()) {
-                areaDatos.append("  - (No ha donado alimentos aún)\n");
+                areaDatos.append("   🔸 (No ha donado alimentos aún)\n");
             } else {
                 for (Alimento a : d.getAlimentos()) {
                     long diasRestantes = ChronoUnit.DAYS.between(hoy, a.getFechaExpiracion());
-                    String linea = "  - " + a.getDescripcion() + " (expira: " + a.getFechaExpiracion() + ")";
-                    areaDatos.append(linea + "\n");
+                    String fecha = a.getFechaExpiracion().format(formatoFecha);
+                    areaDatos.append("   🥫 " + a.getDescripcion() + "\n");
+                    areaDatos.append("      📅 Vence: " + fecha + "\n");
+                    areaDatos.append("      🏥 Fundación: " + a.getFundacion() + "\n");
 
                     if (diasRestantes < 0) {
-                        caducados.add(d + ": " + a.getDescripcion() + " (expiró hace " + Math.abs(diasRestantes) + " días)");
+                        caducados.add("❌ " + d + ": " + a.getDescripcion() + " (expiró hace " + Math.abs(diasRestantes) + " días)");
                     } else {
-                        proximos.add(d + ": " + a.getDescripcion() + " (faltan " + diasRestantes + " días)");
+                        proximos.add("✅ " + d + ": " + a.getDescripcion() + " (faltan " + diasRestantes + " días)");
                     }
                 }
             }
-            areaDatos.append("\n");
         }
 
-        areaDatos.append("====== Resumen de Fechas de vencimiento======\n");
-        areaDatos.append("Alimentos CADUCADOS:\n");
+        areaDatos.append("\n-----------------------------------------------------------------\n");
+        areaDatos.append("⏳ ESTADO DE VENCIMIENTO DE ALIMENTOS\n");
+
+        areaDatos.append("\n⚠ Alimentos CADUCADOS:\n");
         if (caducados.isEmpty()) {
-            areaDatos.append("  - Ninguno\n");
+            areaDatos.append("   ✅ Ninguno\n");
         } else {
-            for (String c : caducados) areaDatos.append("  - " + c + "\n");
+            for (String c : caducados) areaDatos.append("   " + c + "\n");
         }
 
-        areaDatos.append("\nAlimentos aún válidos:\n");
-        for (String p : proximos) {
-            areaDatos.append("  - " + p + "\n");
+        areaDatos.append("\n📆 Alimentos AÚN VÁLIDOS:\n");
+        if (proximos.isEmpty()) {
+            areaDatos.append("   ❌ Ninguno\n");
+        } else {
+            for (String p : proximos) areaDatos.append("   " + p + "\n");
         }
 
-        areaDatos.append("\n====== Alimentos por Fundación ======\n");
+        areaDatos.append("\n----------------------------------------------------------------\n");
+        areaDatos.append("🏥 ALIMENTOS POR FUNDACIÓN\n");
 
         Map<String, ArrayList<String>> alimentosPorFundacion = new HashMap<>();
 
@@ -297,17 +239,18 @@ class SistemaGestionAlimentos extends JFrame {
             for (Alimento a : d.getAlimentos()) {
                 alimentosPorFundacion
                         .computeIfAbsent(a.getFundacion(), k -> new ArrayList<>())
-                        .add(d + ": " + a.getDescripcion() + " (expira: " + a.getFechaExpiracion() + ")");
+                        .add("👤 " + d + " → 🥫 " + a.getDescripcion() + " (vence: " + a.getFechaExpiracion().format(formatoFecha) + ")");
             }
         }
 
         for (String fundacion : alimentosPorFundacion.keySet()) {
-            areaDatos.append("\nFundación: " + fundacion + "\n");
+            areaDatos.append("\n🏥 Fundación: " + fundacion + "\n");
             for (String detalle : alimentosPorFundacion.get(fundacion)) {
-                areaDatos.append("  - " + detalle + "\n");
+                areaDatos.append("   " + detalle + "\n");
             }
         }
 
+        areaDatos.append("\n----------------------------------------------------------------\n");
     }
 
     public static void main(String[] args) {
